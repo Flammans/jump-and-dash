@@ -1,0 +1,7 @@
+*.exe
+*.dsym
+main
+.idea
+.vscode
+Folder.DotSettings.user
+.DS_Store
