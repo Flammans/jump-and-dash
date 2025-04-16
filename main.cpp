@@ -7,12 +7,20 @@ int main() {
 
     InitWindow(windowWidth, windowHeight, "Jump And Dash Game"); // Create window and OpenGL context
 
-    // Character dimensions
-    const int characterWidth{50}; 
-    const int characterHeight{80};
-    int posY{windowHeight - characterHeight};
-    int velocity{0}; // Initialize velocity
     const int gravity{1}; // Aceleration due to gravity (pixels/frame)/frame
+    Texture2D characterTexture = LoadTexture("textures/scarfy.png"); // Load character texture
+    Rectangle characterRec; // Character rectangle
+    characterRec.width = characterTexture.width/6; // Set width
+    characterRec.height = characterTexture.height; // Set height
+    characterRec.x = 0; // Set x position
+    characterRec.y = 0; // Set y position
+    Vector2 characterPos; // Character position
+    characterPos.x = windowWidth / 2 - characterRec.width / 2; // Center the character
+    characterPos.y = windowHeight - characterRec.height; // Set y position to the bottom of the window
+
+    // Character dimensions
+
+    int velocity{0}; // Initialize velocity
     bool isInAir{false}; // Jumping state
     const int jumpVelocity{-22}; // Jump velocity
     const int dashVelocity{-40}; // Dash velocity
@@ -26,7 +34,7 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
-        DrawRectangle(windowWidth / 2, posY, characterWidth, characterHeight, BLUE); // Draw rectangle
+        DrawTextureRec(characterTexture, characterRec, characterPos, WHITE); // Draw character
         DrawText("Press SPACE to jump", 10, 10, 20, DARKGRAY);
         DrawText("Press D to dash", 10, 30, 20, DARKGRAY);
         DrawText("Press ESC to exit", 10, 50, 20, DARKGRAY);
@@ -39,10 +47,10 @@ int main() {
             velocity = dashVelocity; // Dash
         }
 
-        posY += velocity; // Update position
+        characterPos.y += velocity; // Update position
 
         // Perform ground collision detection
-        if (posY < windowHeight - characterHeight) {
+        if (characterPos.y < windowHeight - characterRec.height) {
             // Rectagle is oin air
             isInAir = true;
             velocity += gravity; // Apply gravity
@@ -50,22 +58,23 @@ int main() {
             // Rectagle is on the ground
             isInAir = false;
             velocity = 0; // Reset velocity when on the ground
-            posY = windowHeight - characterHeight; // Reset position to ground level
+            characterPos.y = windowHeight - characterRec.height; // Reset position to ground level
         }
-        if (posY > windowHeight - characterHeight) {
-            posY = windowHeight - characterHeight; // Prevent going below ground
+        if (characterPos.y > windowHeight - characterRec.height) {
+            characterPos.y = windowHeight - characterRec.height; // Prevent going below ground
         }
-        if (posY < 0) {
-            posY = 0; // Prevent going above the window
+        if (characterPos.y < 0) {
+            characterPos.y = 0; // Prevent going above the window
         }
-        if (posY > windowHeight - characterHeight) {
-            posY = windowHeight - characterHeight; // Prevent going below ground
+        if (characterPos.y > windowHeight - characterRec.height) {
+            characterPos.y = windowHeight - characterRec.height; // Prevent going below ground
         } 
 
         EndDrawing();
     }
 
     // De-Initialization
+    UnloadTexture(characterTexture); // Unload texture
     CloseWindow(); // Close window and OpenGL context
 
     return 0;
