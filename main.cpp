@@ -11,8 +11,8 @@ int main() {
     const int width{50}; 
     const int height{80};
     int posY{windowHeight - height};
-    int velocity(0); // Initialize velocity
-    int gravity(1); // Gravity effect
+    int velocity{0}; // Initialize velocity
+    const int gravity{1}; // Aceleration due to gravity (pixels/frame)/frame
 
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
@@ -22,7 +22,6 @@ int main() {
         // Draw
         BeginDrawing();
         ClearBackground(RAYWHITE);
-
         
         DrawRectangle(windowWidth / 2, posY, width, height, BLUE); // Draw rectangle
         DrawText("Press SPACE to jump", 10, 10, 20, DARKGRAY);
@@ -36,9 +35,14 @@ int main() {
             velocity = -20; // Dash
         }
 
+        posY += velocity; // Update position
+
+        // Perform ground collision detection
         if (posY < windowHeight - height) {
+            // Rectagle is oin air
             velocity += gravity; // Apply gravity
         } else {
+            // Rectagle is on the ground
             velocity = 0; // Reset velocity when on the ground
             posY = windowHeight - height; // Reset position to ground level
         }
@@ -52,9 +56,6 @@ int main() {
             posY = windowHeight - height; // Prevent going below ground
         } 
 
-        posY += velocity; // Update position
-        
- 
         EndDrawing();
     }
 
