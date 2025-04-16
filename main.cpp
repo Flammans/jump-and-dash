@@ -8,10 +8,19 @@ int main() {
     InitWindow(windowWidth, windowHeight, "Jump And Dash Game"); // Create window and OpenGL context
 
     const int gravity{1'000}; // Aceleration due to gravity (pixels/second)/second
-    Texture2D characterTexture = LoadTexture("textures/scarfy.png"); // Load character texture
+ 
+    // Nebula 
+    Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png"); // Load nebula texture
+    Rectangle nebulaRec{0.0f, 0.0f, nebula.width/8.0f, nebula.height/8.0f}; // Nebula rectangle
+    Vector2 nebulaPos{windowWidth, windowHeight - nebulaRec.height }; // Nebula position
+    // Set nebula X velocity (pixels/second) 
+    int nebulaVelocity{-600}; // Nebula velocity
+
+    // Main Character  
+    Texture2D character = LoadTexture("textures/scarfy.png"); // Load character texture
     Rectangle characterRec; // Character rectangle
-    characterRec.width = characterTexture.width/6; // Set width
-    characterRec.height = characterTexture.height; // Set height
+    characterRec.width = character.width/6; // Set width
+    characterRec.height = character.height; // Set height
     characterRec.x = 0; // Set x position
     characterRec.y = 0; // Set y position
     Vector2 characterPos; // Character position
@@ -42,11 +51,6 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
-        DrawTextureRec(characterTexture, characterRec, characterPos, WHITE); // Draw character
-        DrawText("Press SPACE to jump", 10, 10, 20, DARKGRAY);
-        DrawText("Press D to dash", 10, 30, 20, DARKGRAY);
-        DrawText("Press ESC to exit", 10, 50, 20, DARKGRAY);
-
         // Perform ground collision detection
         if (characterPos.y < windowHeight - characterRec.height) {
             // Rectagle is oin air
@@ -67,25 +71,38 @@ int main() {
             velocity = dashVelocity; // Dash
         }
 
-        // Update the position
+        // Move nebula position
+        nebulaPos.x += nebulaVelocity * deltaTime; // Update nebula position
+        
+        // Update character the position
         characterPos.y += velocity * deltaTime; 
 
-        runningTime += deltaTime; // Update running time
-        if (runningTime >= updateTime) { // Check if it's time to update the animation frame
-            runningTime = 0; // Reset running time
-            
-            //Update animation frame
-            characterRec.x = frame * characterRec.width; // Set the x position of the texture
- 
-            frame++; // Update frame
-            if (frame > 5) frame = 0; // Reset frame counter
+        if(!isInAir) {
+            // Update running time 
+            runningTime += deltaTime; 
+            if (runningTime >= updateTime) { // Check if it's time to update the animation frame
+                runningTime = 0; // Reset running time
+                //Update animation frame
+                characterRec.x = frame * characterRec.width; // Set the x position of the texture
+                // Update frame
+                frame++; 
+                // Reset frame counter
+                if (frame > 5) frame = 0; 
+            }
         }
 
+        // Draw nebula
+        DrawTextureRec(nebula, nebulaRec, nebulaPos, WHITE);
+
+        // Draw character
+        DrawTextureRec(character, characterRec, characterPos, WHITE); 
+        
         EndDrawing();
     }
 
     // De-Initialization
-    UnloadTexture(characterTexture); // Unload texture
+    UnloadTexture(character); // Unload texture
+    UnloadTexture(nebula); // Unload texture
     CloseWindow(); // Close window and OpenGL context
 
     return 0;
