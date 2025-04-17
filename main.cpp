@@ -10,6 +10,7 @@ struct AnimationData {
 
 int main() {
     // Initialization
+    // Window dimensions
     const int windowWidth = 800;
     const int windowHeight = 450;
 
@@ -35,6 +36,13 @@ int main() {
         0.0f, // Running time (seconds)
         1.0f/16.0f // Update time (seconds)
     }; // Nebula 2 animation data
+
+
+    AnimationData nebulae[2]{
+        nebulaData, // First nebula
+        nebula2Data // Second nebula
+    }; // Array of nebulae
+
 
     // Set nebula X velocity (pixels/second) 
     int nebulaVelocity{-200}; // Nebula velocity 
@@ -97,9 +105,9 @@ int main() {
         }
 
         // Move nebula position
-        nebulaData.pos.x += nebulaVelocity * deltaTime; // Update nebula position
+        nebulae[0].pos.x += nebulaVelocity * deltaTime; // Update nebula position
         // Move nebula 2 position
-        nebula2Data.pos.x += nebulaVelocity * deltaTime; // Update nebula 2 position
+        nebulae[1].pos.x += nebulaVelocity * deltaTime; // Update nebula 2 position
         
         // Update character the position
         characterData.pos.y += velocity * deltaTime; 
@@ -119,34 +127,34 @@ int main() {
         } 
 
         // Update nebula animation frame
-        nebulaData.runningTime += deltaTime; // Update running time
-        if (nebulaData.runningTime >= nebulaData.updateTime) { // Check if it's time to update the animation frame
-            nebulaData.runningTime = 0; // Reset running time
+        nebulae[0].runningTime += deltaTime; // Update running time
+        if (nebulae[0].runningTime >= nebulae[0].updateTime) { // Check if it's time to update the animation frame
+            nebulae[0].runningTime = 0; // Reset running time
             // Update nebula frame
-            nebulaData.rec.x = nebulaData.frame * nebulaData.rec.width; // Set the x position of the texture
+            nebulae[0].rec.x = nebulae[0].frame * nebulae[0].rec.width; // Set the x position of the texture
             // Update frame
-            nebulaData.frame++; 
+            nebulae[0].frame++; 
             // Reset frame counter
-            if (nebulaData.frame > 7) nebulaData.frame = 0; 
+            if (nebulae[0].frame > 7) nebulae[0].frame = 0; 
         }
 
 
         // Update nebula animation frame
-        nebula2Data.runningTime += deltaTime; // Update running time
-        if (nebula2Data.runningTime >= nebula2Data.updateTime) { // Check if it's time to update the animation frame
-            nebula2Data.runningTime = 0; // Reset running time
+        nebulae[1].runningTime += deltaTime; // Update running time
+        if (nebulae[1].runningTime >= nebulae[1].updateTime) { // Check if it's time to update the animation frame
+            nebulae[1].runningTime = 0; // Reset running time
             // Update nebula frame
-            nebula2Data.rec.x = nebula2Data.frame * nebula2Data.rec.width; // Set the x position of the texture
+            nebulae[1].rec.x = nebulae[1].frame * nebulae[1].rec.width; // Set the x position of the texture
             // Update frame
-            nebula2Data.frame++; 
+            nebulae[1].frame++; 
             // Reset frame counter
-            if (nebula2Data.frame > 7) nebula2Data.frame = 0; 
+            if (nebulae[1].frame > 7) nebulae[1].frame = 0; 
         }
 
         // Draw nebula
-        DrawTextureRec(nebula, nebulaData.rec, nebulaData.pos, WHITE);
+        DrawTextureRec(nebula, nebulae[0].rec, nebulae[0].pos, WHITE);
         // Draw nebula 2
-        DrawTextureRec(nebula, nebula2Data.rec, nebula2Data.pos, RED);
+        DrawTextureRec(nebula, nebulae[1].rec, nebulae[1].pos, RED);
 
         // Draw character
         DrawTextureRec(character, characterData.rec, characterData.pos, WHITE); 
