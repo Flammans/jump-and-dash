@@ -13,14 +13,25 @@ int main() {
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png"); // Load nebula texture
     Rectangle nebulaRec{0.0f, 0.0f, nebula.width/8.0f, nebula.height/8.0f}; // Nebula rectangle
     Vector2 nebulaPos{windowWidth, windowHeight - nebulaRec.height }; // Nebula position
+
+
+    // Nebula 2
+    Rectangle nebula2Rec{0.0f, 0.0f, nebula.width/8.0f, nebula.height/8.0f}; // Nebula 2 rectangle
+    Vector2 nebula2Pos{windowWidth + 400, windowHeight - nebulaRec.height }; // Nebula 2 position
     
     // Nebula Animation
     int nebulaFrame{0}; // Nebula frame counter
     const float nebulaUpdateTime{1.0/12.0}; // Update time (seconds)
     float nebulaRunningTime{0}; // Nebula running time (seconds)
     
+
+    // Nebula 2 Animation
+    int nebula2Frame{0};
+    const float nebula2UpdateTime{1.0/16.0}; // Update time (seconds)
+    float nebula2RunningTime{0}; // Nebula 2 running time (seconds)
+
     // Set nebula X velocity (pixels/second) 
-    int nebulaVelocity{-200}; // Nebula velocity
+    int nebulaVelocity{-200}; // Nebula velocity 
 
     // Main Character  
     Texture2D character = LoadTexture("textures/scarfy.png"); // Load character texture
@@ -79,6 +90,8 @@ int main() {
 
         // Move nebula position
         nebulaPos.x += nebulaVelocity * deltaTime; // Update nebula position
+        // Move nebula 2 position
+        nebula2Pos.x += nebulaVelocity * deltaTime; // Update nebula 2 position
         
         // Update character the position
         characterPos.y += velocity * deltaTime; 
@@ -95,7 +108,7 @@ int main() {
                 // Reset frame counter
                 if (frame > 5) frame = 0; 
             }
-        }
+        } 
 
         // Update nebula animation frame
         nebulaRunningTime += deltaTime; // Update running time
@@ -109,8 +122,24 @@ int main() {
             if (nebulaFrame > 7) nebulaFrame = 0; 
         }
 
+
+        // Update nebula animation frame
+        nebula2RunningTime += deltaTime; // Update running time
+        if (nebula2RunningTime >= nebula2UpdateTime) { // Check if it's time to update the animation frame
+            nebula2RunningTime = 0; // Reset running time
+            // Update nebula frame
+            nebula2Rec.x = nebula2Frame * nebula2Rec.width; // Set the x position of the texture
+            // Update frame
+            nebula2Frame++; 
+            // Reset frame counter
+            if (nebula2Frame > 7) nebula2Frame = 0; 
+        }
+
         // Draw nebula
         DrawTextureRec(nebula, nebulaRec, nebulaPos, WHITE);
+        // Draw nebula 2
+        DrawTextureRec(nebula, nebula2Rec, nebula2Pos, RED);
+
 
         // Draw character
         DrawTextureRec(character, characterRec, characterPos, WHITE); 
