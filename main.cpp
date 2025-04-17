@@ -13,8 +13,14 @@ int main() {
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png"); // Load nebula texture
     Rectangle nebulaRec{0.0f, 0.0f, nebula.width/8.0f, nebula.height/8.0f}; // Nebula rectangle
     Vector2 nebulaPos{windowWidth, windowHeight - nebulaRec.height }; // Nebula position
+    
+    // Nebula Animation
+    int nebulaFrame{0}; // Nebula frame counter
+    const float nebulaUpdateTime{1.0/12.0}; // Update time (seconds)
+    float nebulaRunningTime{0}; // Nebula running time (seconds)
+    
     // Set nebula X velocity (pixels/second) 
-    int nebulaVelocity{-600}; // Nebula velocity
+    int nebulaVelocity{-200}; // Nebula velocity
 
     // Main Character  
     Texture2D character = LoadTexture("textures/scarfy.png"); // Load character texture
@@ -89,6 +95,18 @@ int main() {
                 // Reset frame counter
                 if (frame > 5) frame = 0; 
             }
+        }
+
+        // Update nebula animation frame
+        nebulaRunningTime += deltaTime; // Update running time
+        if (nebulaRunningTime >= nebulaUpdateTime) { // Check if it's time to update the animation frame
+            nebulaRunningTime = 0; // Reset running time
+            // Update nebula frame
+            nebulaRec.x = nebulaFrame * nebulaRec.width; // Set the x position of the texture
+            // Update frame
+            nebulaFrame++; 
+            // Reset frame counter
+            if (nebulaFrame > 7) nebulaFrame = 0; 
         }
 
         // Draw nebula
