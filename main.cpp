@@ -8,6 +8,26 @@ struct AnimationData {
     float updateTime{1.0f/12.0f}; // Update time (seconds)
 };
 
+bool isOnGround(AnimationData data, int windowHeight) {
+    // Check if the rectangle is on the ground
+    return data.pos.y >= windowHeight - data.rec.height;
+}
+
+AnimationData updateAnimationData(AnimationData data, float deltaTime, int maxFrames) {
+    // Update the animation data
+    data.runningTime += deltaTime; // Update running time
+    if (data.runningTime >= data.updateTime) { // Check if it's time to update the animation frame
+        data.runningTime = 0; // Reset running time
+        // Update animation frame
+        data.rec.x = data.frame * data.rec.width; // Set the x position of the texture
+        // Update frame
+        data.frame++; 
+        // Reset frame counter
+        if (data.frame > maxFrames) data.frame = 0; 
+    }
+    return data;
+}
+ 
 int main() {
     // Initialization
     // Window dimensions
@@ -60,13 +80,6 @@ int main() {
     const int jumpVelocity{-600}; // Jump velocity (pixels/second)
     const int dashVelocity{-800}; // Dash velocity (pixels/second)
 
-    // Amount of time to wait before updating the animation frame
-    // This is used to control the speed of the animation
-    // The value is set to 1/12 of a second, which means the animation will update every 12 frames
-    // This is a common frame rate for animations, as it gives a smooth look without being too fast
-    const float updateTime{1.0/12.0}; // Update time (seconds)
-    float runningTime{0}; // Running time (seconds)
-
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
     // Main game loop
@@ -78,15 +91,15 @@ int main() {
         ClearBackground(RAYWHITE);
         
         // Perform ground collision detection
-        if (characterData.pos.y < windowHeight - characterData.rec.height) {
-            // Rectagle is oin air
-            isInAir = true;
-            velocity += gravity * deltaTime; // Apply gravity
-        } else {
+        if (isOnGround(characterData, windowHeight)) {
             // Rectagle is on the ground
             isInAir = false;
             velocity = 0; // Reset velocity when on the ground
             characterData.pos.y = windowHeight - characterData.rec.height; // Reset position to ground level
+        } else {
+            // Rectagle is in air
+            isInAir = true;
+            velocity += gravity * deltaTime; // Apply gravity
         }
 
         // jump and dash logic
@@ -107,17 +120,7 @@ int main() {
         characterData.pos.y += velocity * deltaTime; 
 
         if(!isInAir) {
-            // Update running time 
-            runningTime += deltaTime; 
-            if (runningTime >= updateTime) { // Check if it's time to update the animation frame
-                runningTime = 0; // Reset running time
-                //Update animation frame
-                characterData.rec.x = frame * characterData.rec.width; // Set the x position of the texture
-                // Update frame
-                frame++; 
-                // Reset frame counter
-                if (frame > 5) frame = 0; 
-            }
+            characterData = updateAnimationData(characterData, deltaTime, 5); // Update character animation
         } 
 
         for (int i = 0; i < sizeOfNebula; i++)
@@ -126,18 +129,8 @@ int main() {
             if (nebulae[i].pos.x < -nebulae[i].rec.width) {
                 nebulae[i].pos.x = windowWidth + GetRandomValue(0, 400); // Reset position to the right side of the screen
             }
-
-            // Update nebula animation frame
-            nebulae[i].runningTime += deltaTime; // Update running time
-            if (nebulae[i].runningTime >= nebulae[i].updateTime) { // Check if it's time to update the animation frame
-                nebulae[i].runningTime = 0; // Reset running time
-                // Update nebula frame
-                nebulae[i].rec.x = nebulae[i].frame * nebulae[i].rec.width; // Set the x position of the texture
-                // Update frame
-                nebulae[i].frame++; 
-                // Reset frame counter
-                if (nebulae[i].frame > 7) nebulae[i].frame = 0; 
-            }
+ 
+            nebulae[i] = updateAnimationData(nebulae[i], deltaTime, 7); // Update nebula animation
 
             DrawTextureRec(nebula, nebulae[i].rec, nebulae[i].pos, WHITE); // Draw nebula
         }
