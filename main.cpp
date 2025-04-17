@@ -21,28 +21,21 @@ int main() {
     // Nebula 
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png"); // Load nebula texture
 
-    AnimationData nebulaData{ 
-        {0.0f, 0.0f, nebula.width/8.0f, nebula.height/8.0f}, // Rectangle for the frame
-        {windowWidth, windowHeight - nebula.height/8.0f}, // Position of the frame
-        0, // Frame counter
-        0.0f, // Running time (seconds)
-        1.0f/12.0f // Update time (seconds)
-    }; // Nebula animation data
+    const int sizeOfNebula{3}; // Number of frames in the nebula texture
+    AnimationData nebulae[sizeOfNebula]{}; // Array of nebulae
 
-    AnimationData nebula2Data{ 
-        {0.0f, 0.0f, nebula.width/8.0f, nebula.height/8.0f}, // Rectangle for the frame
-        {windowWidth + 400, windowHeight - nebula.height/8.0f}, // Position of the frame
-        0, // Frame counter
-        0.0f, // Running time (seconds)
-        1.0f/16.0f // Update time (seconds)
-    }; // Nebula 2 animation data
-
-
-    AnimationData nebulae[2]{
-        nebulaData, // First nebula
-        nebula2Data // Second nebula
-    }; // Array of nebulae
-
+    for (int i = 0; i < sizeOfNebula; i++)
+    {
+        nebulae[i].rec.x = 0.0f; // Set x position
+        nebulae[i].rec.y = 0.0f; // Set y position
+        nebulae[i].rec.width = nebula.width/8.0f; // Set width
+        nebulae[i].rec.height = nebula.height/8.0f; // Set height
+        nebulae[i].pos.x = windowWidth + GetRandomValue(0, 1200); // Set x position
+        nebulae[i].pos.y = windowHeight - nebula.height/8.0f; // Set y position
+        nebulae[i].frame = 0; // Initialize frame counter
+        nebulae[i].runningTime = 0.0f; // Initialize running time
+        nebulae[i].updateTime = 1.0f/16.0f; // Set update time (seconds)
+    }
 
     // Set nebula X velocity (pixels/second) 
     int nebulaVelocity{-200}; // Nebula velocity 
@@ -104,11 +97,12 @@ int main() {
             velocity = dashVelocity; // Dash
         }
 
-        // Move nebula position
-        nebulae[0].pos.x += nebulaVelocity * deltaTime; // Update nebula position
-        // Move nebula 2 position
-        nebulae[1].pos.x += nebulaVelocity * deltaTime; // Update nebula 2 position
-        
+        for (int i = 0; i < sizeOfNebula; i++)
+        {
+            // Move nebula position
+            nebulae[i].pos.x += nebulaVelocity * deltaTime; // Update nebula position
+        }
+
         // Update character the position
         characterData.pos.y += velocity * deltaTime; 
 
@@ -126,35 +120,27 @@ int main() {
             }
         } 
 
-        // Update nebula animation frame
-        nebulae[0].runningTime += deltaTime; // Update running time
-        if (nebulae[0].runningTime >= nebulae[0].updateTime) { // Check if it's time to update the animation frame
-            nebulae[0].runningTime = 0; // Reset running time
-            // Update nebula frame
-            nebulae[0].rec.x = nebulae[0].frame * nebulae[0].rec.width; // Set the x position of the texture
-            // Update frame
-            nebulae[0].frame++; 
-            // Reset frame counter
-            if (nebulae[0].frame > 7) nebulae[0].frame = 0; 
+        for (int i = 0; i < sizeOfNebula; i++)
+        {
+            // Check if nebula is out of the screen
+            if (nebulae[i].pos.x < -nebulae[i].rec.width) {
+                nebulae[i].pos.x = windowWidth + GetRandomValue(0, 400); // Reset position to the right side of the screen
+            }
+
+            // Update nebula animation frame
+            nebulae[i].runningTime += deltaTime; // Update running time
+            if (nebulae[i].runningTime >= nebulae[i].updateTime) { // Check if it's time to update the animation frame
+                nebulae[i].runningTime = 0; // Reset running time
+                // Update nebula frame
+                nebulae[i].rec.x = nebulae[i].frame * nebulae[i].rec.width; // Set the x position of the texture
+                // Update frame
+                nebulae[i].frame++; 
+                // Reset frame counter
+                if (nebulae[i].frame > 7) nebulae[i].frame = 0; 
+            }
+
+            DrawTextureRec(nebula, nebulae[i].rec, nebulae[i].pos, WHITE); // Draw nebula
         }
-
-
-        // Update nebula animation frame
-        nebulae[1].runningTime += deltaTime; // Update running time
-        if (nebulae[1].runningTime >= nebulae[1].updateTime) { // Check if it's time to update the animation frame
-            nebulae[1].runningTime = 0; // Reset running time
-            // Update nebula frame
-            nebulae[1].rec.x = nebulae[1].frame * nebulae[1].rec.width; // Set the x position of the texture
-            // Update frame
-            nebulae[1].frame++; 
-            // Reset frame counter
-            if (nebulae[1].frame > 7) nebulae[1].frame = 0; 
-        }
-
-        // Draw nebula
-        DrawTextureRec(nebula, nebulae[0].rec, nebulae[0].pos, WHITE);
-        // Draw nebula 2
-        DrawTextureRec(nebula, nebulae[1].rec, nebulae[1].pos, RED);
 
         // Draw character
         DrawTextureRec(character, characterData.rec, characterData.pos, WHITE); 
