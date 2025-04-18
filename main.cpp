@@ -8,7 +8,7 @@ struct AnimationData {
     float updateTime{1.0f/12.0f}; // Update time (seconds)
 };
 
-bool isOnGround(AnimationData data, int windowHeight) {
+bool IsOnGround(AnimationData data, int windowHeight) {
     // Check if the rectangle is on the ground
     return data.pos.y >= windowHeight - data.rec.height;
 }
@@ -27,12 +27,32 @@ AnimationData updateAnimationData(AnimationData data, float deltaTime, int maxFr
     }
     return data;
 }
+
+void DrawParallaxLayer(Texture2D texture, float &positionX, float speed, float deltaTime, float scale, int &count)
+{
+    // Draw the parallax layer
+    // Update the position of the layer
+    positionX -= speed * deltaTime;
+    // Check if the layer is out of the screen
+    if (positionX <= -texture.width * scale)
+    {
+        positionX = 0.0f;
+        count++; 
+    }
+    // Draw the texture at the current position
+    for (int i = 0; i < count; i++)
+    {
+        Vector2 position = { positionX + texture.width * scale * i, 0.0f };
+        DrawTextureEx(texture, position, 0.0f, scale, WHITE);
+    }
+}
+
  
 int main() {
     // Initialization
     // Window dimensions
-    const int windowWidth = 800;
-    const int windowHeight = 450;
+    const int windowWidth = 1200;
+    const int windowHeight = 720;
 
     InitWindow(windowWidth, windowHeight, "Jump And Dash Game"); // Create window and OpenGL context
 
@@ -87,64 +107,22 @@ int main() {
     float migroundPositionX{0.0f}; // Midground position
     float foregroundPositionX{0.0f}; // Foreground position
 
+    int backgroundCount{3}; // Background layer count
+    int midgroundCount{3}; // Midground layer count
+    int foregroundCount{3}; // Foreground layer count
+
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
     // Main game loop
     while (!WindowShouldClose()) { // Detect window close button or ESC key
         // Update
         float deltaTime{GetFrameTime()}; // Get time between frames
-        // Draw
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        // Draw background
-        int countOfBackgrounds{3}; // Number of backgrounds
-        bagroundPositionX -= 20 * deltaTime; // Update background position
-        Vector2 backgroundPos{bagroundPositionX, 0.0f}; // Background position
-        DrawTextureEx(background, backgroundPos, 0.0f, 3.0f, WHITE); // Draw background
+        DrawParallaxLayer(background, bagroundPositionX, 20.0f, deltaTime, 4.0f, backgroundCount); // Draw background
+        DrawParallaxLayer(midground, migroundPositionX, 40.0f, deltaTime, 4.0f, midgroundCount); // Draw midground
+        DrawParallaxLayer(foreground, foregroundPositionX, 80.0f, deltaTime, 4.0f, foregroundCount); // Draw foreground
         
-        // loop background infinitely
-        if (bagroundPositionX <= -background.width * 3) { // Check if background is out of the screen
-            bagroundPositionX = 0.0f; // Reset background position
-            countOfBackgrounds++; // Increment background count
-        }
-        for (int i = 0; i < countOfBackgrounds; i++)
-        {
-            DrawTextureEx(background, (Vector2){bagroundPositionX + background.width * (i * 3), 0.0f}, 0.0f, 3.0f, WHITE); // Draw background            
-        }
-
-        // Draw midground background
-        int countOfMidground{3}; // Number of midgrounds
-        migroundPositionX -= 40 * deltaTime; // Update midground position
-        Vector2 midgroundPos{migroundPositionX, 0.0f}; // Midground position
-        DrawTextureEx(midground, midgroundPos, 0.0f, 3.0f, WHITE); // Draw background
-        // loop midground background infinitely
-        if (migroundPositionX <= -midground.width * 3) { // Check if midground is out of the screen
-            migroundPositionX = 0.0f; // Reset midground position
-            countOfMidground++; // Increment midground count
-        }
-        for (int i = 0; i < countOfMidground; i++)
-        {
-            DrawTextureEx(midground, (Vector2){migroundPositionX + midground.width * (i * 3), 0.0f}, 0.0f, 3.0f, WHITE); // Draw midground            
-        }
-
-        // Draw foreground background
-        int countOfForeground{3}; // Number of foregrounds
-        foregroundPositionX -= 80 * deltaTime; // Update foreground position
-        Vector2 foregroundPos{foregroundPositionX, 0.0f}; // Foreground position
-        DrawTextureEx(foreground, foregroundPos, 0.0f, 3.0f, WHITE); // Draw background
-        // loop foreground background infinitely
-        if (foregroundPositionX <= -foreground.width * 3) { // Check if foreground is out of the screen
-            foregroundPositionX = 0.0f; // Reset foreground position
-            countOfForeground++; // Increment foreground count
-        }
-        for (int i = 0; i < countOfForeground; i++)
-        {
-            DrawTextureEx(foreground, (Vector2){foregroundPositionX + foreground.width * (i * 3), 0.0f}, 0.0f, 3.0f, WHITE); // Draw foreground            
-        }
-
         // Perform ground collision detection
-        if (isOnGround(characterData, windowHeight)) {
+        if (IsOnGround(characterData, windowHeight)) {
             // Rectagle is on the ground
             isInAir = false;
             velocity = 0; // Reset velocity when on the ground
