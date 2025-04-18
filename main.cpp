@@ -74,11 +74,18 @@ int main() {
     characterData.updateTime = 1.0f/12.0f; // Set update time (seconds)
 
     // Animation frame
-    int frame{0}; // Frame counter
     int velocity{0}; // Initialize velocity
     bool isInAir{false}; // Jumping state
     const int jumpVelocity{-600}; // Jump velocity (pixels/second)
     const int dashVelocity{-800}; // Dash velocity (pixels/second)
+
+    Texture2D background = LoadTexture("textures/far-buildings.png"); // Load background texture
+    Texture2D midground = LoadTexture("textures/back-buildings.png"); // Load midground texture
+    Texture2D foreground = LoadTexture("textures/foreground.png"); // Load foreground texture
+    
+    float bagroundPositionX{0.0f}; // Background position
+    float migroundPositionX{0.0f}; // Midground position
+    float foregroundPositionX{0.0f}; // Foreground position
 
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
@@ -89,7 +96,53 @@ int main() {
         // Draw
         BeginDrawing();
         ClearBackground(RAYWHITE);
+
+        // Draw background
+        int countOfBackgrounds{3}; // Number of backgrounds
+        bagroundPositionX -= 20 * deltaTime; // Update background position
+        Vector2 backgroundPos{bagroundPositionX, 0.0f}; // Background position
+        DrawTextureEx(background, backgroundPos, 0.0f, 3.0f, WHITE); // Draw background
         
+        // loop background infinitely
+        if (bagroundPositionX <= -background.width * 3) { // Check if background is out of the screen
+            bagroundPositionX = 0.0f; // Reset background position
+            countOfBackgrounds++; // Increment background count
+        }
+        for (int i = 0; i < countOfBackgrounds; i++)
+        {
+            DrawTextureEx(background, (Vector2){bagroundPositionX + background.width * (i * 3), 0.0f}, 0.0f, 3.0f, WHITE); // Draw background            
+        }
+
+        // Draw midground background
+        int countOfMidground{3}; // Number of midgrounds
+        migroundPositionX -= 40 * deltaTime; // Update midground position
+        Vector2 midgroundPos{migroundPositionX, 0.0f}; // Midground position
+        DrawTextureEx(midground, midgroundPos, 0.0f, 3.0f, WHITE); // Draw background
+        // loop midground background infinitely
+        if (migroundPositionX <= -midground.width * 3) { // Check if midground is out of the screen
+            migroundPositionX = 0.0f; // Reset midground position
+            countOfMidground++; // Increment midground count
+        }
+        for (int i = 0; i < countOfMidground; i++)
+        {
+            DrawTextureEx(midground, (Vector2){migroundPositionX + midground.width * (i * 3), 0.0f}, 0.0f, 3.0f, WHITE); // Draw midground            
+        }
+
+        // Draw foreground background
+        int countOfForeground{3}; // Number of foregrounds
+        foregroundPositionX -= 80 * deltaTime; // Update foreground position
+        Vector2 foregroundPos{foregroundPositionX, 0.0f}; // Foreground position
+        DrawTextureEx(foreground, foregroundPos, 0.0f, 3.0f, WHITE); // Draw background
+        // loop foreground background infinitely
+        if (foregroundPositionX <= -foreground.width * 3) { // Check if foreground is out of the screen
+            foregroundPositionX = 0.0f; // Reset foreground position
+            countOfForeground++; // Increment foreground count
+        }
+        for (int i = 0; i < countOfForeground; i++)
+        {
+            DrawTextureEx(foreground, (Vector2){foregroundPositionX + foreground.width * (i * 3), 0.0f}, 0.0f, 3.0f, WHITE); // Draw foreground            
+        }
+
         // Perform ground collision detection
         if (isOnGround(characterData, windowHeight)) {
             // Rectagle is on the ground
@@ -144,6 +197,9 @@ int main() {
     // De-Initialization
     UnloadTexture(character); // Unload texture
     UnloadTexture(nebula); // Unload texture
+    UnloadTexture(background); // Unload texture
+    UnloadTexture(midground); // Unload texture
+    UnloadTexture(foreground); // Unload texture
     CloseWindow(); // Close window and OpenGL context
 
     return 0;
