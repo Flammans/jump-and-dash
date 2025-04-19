@@ -77,7 +77,6 @@ int main() {
         czechHedgehogs[i].updateTime = 1.0f/16.0f; // Set update time (seconds)
     }
 
-    
     // Set czechHedgehog X velocity (pixels/second) 
     int czechHedgehogVelocity{-180}; // czechHedgehog velocity 
 
@@ -89,6 +88,7 @@ int main() {
     finishLineRec.y = 0; // Set y position
     finishLineRec.width = finishLine.width; // Set width
     finishLineRec.height = finishLine.height; // Set height
+
 
     // Main Character  
     Texture2D characterSpritesheet = LoadTexture("textures/rollfy.png"); // Load character texture
@@ -122,6 +122,11 @@ int main() {
 
     bool collisionDetected{false}; // Collision detection
     bool isGameOver{false}; // Game over state
+    bool isGameWin{false}; // Game win state
+    
+    float distanceTraveled = 0.0f;
+    bool finishLinePlaced = false;
+
 
     // Lose condition
     Texture2D loseCondition = LoadTexture("textures/rollfy-game-over.png"); // Load lose condition texture
@@ -134,7 +139,16 @@ int main() {
     loseConditionPos.x = windowWidth / 2 - loseConditionRec.width / 2; // Center the lose condition
     loseConditionPos.y = windowHeight / 2 - loseConditionRec.height / 2; // Center the lose condition
 
-
+    // Vin condition
+    Texture2D winCondition = LoadTexture("textures/rollfy-vin.png"); // Load win condition texture
+    Rectangle winConditionRec; // Win condition rectangle
+    Vector2 winConditionPos; // Win condition position
+    winConditionRec.x = 0; // Set x position
+    winConditionRec.y = 0; // Set y position
+    winConditionRec.width = winCondition.width; // Set width
+    winConditionRec.height = winCondition.height; // Set height
+    winConditionPos.x = windowWidth / 2 - winConditionRec.width / 2; // Center the win condition
+    winConditionPos.y = windowHeight / 2 - winConditionRec.height / 2; // Center the win condition
 
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
@@ -144,6 +158,13 @@ int main() {
         float deltaTime{GetFrameTime()}; // Get time between frames
         DrawParallaxLayer(background, bagroundPositionX, 10.0f, deltaTime, 0.75f, backgroundCount); // Draw background
         DrawParallaxLayer(foreground, foregroundPositionX, 180.0f, deltaTime, 0.75, foregroundCount); // Draw foreground
+        distanceTraveled += -czechHedgehogVelocity * deltaTime; 
+
+        if (!finishLinePlaced && distanceTraveled >= 2000.0f) {
+            finishLinePos.x = windowWidth; 
+            finishLinePos.y = windowHeight - finishLineRec.height;
+            finishLinePlaced = true;
+        }
         
         // Perform ground collision detection
         if (IsOnGround(characterData, windowHeight)) {
@@ -188,12 +209,11 @@ int main() {
 
         for (AnimationData czechHedgehog : czechHedgehogs) {
             // Check for collision with czechHedgehog
-            float pad {20.0f}; // Padding for collision detection
             Rectangle czechHedgehogRec = {
-            czechHedgehog.pos.x + pad, 
-            czechHedgehog.pos.y + pad, 
-            czechHedgehog.rec.width - 2* pad, 
-            czechHedgehog.rec.height - 2* pad
+            czechHedgehog.pos.x, 
+            czechHedgehog.pos.y, 
+            czechHedgehog.rec.width, 
+            czechHedgehog.rec.height
             };
             
             Rectangle characterRec = {
@@ -222,18 +242,80 @@ int main() {
             czechHedgehogs[i] = updateAnimationData(czechHedgehogs[i], deltaTime, 7); // Update czechHedgehog animation
 
             DrawTextureRec(czechHedgehog, czechHedgehogs[i].rec, czechHedgehogs[i].pos, WHITE); // Draw czechHedgehog
-  
+
         }
 
-        // Draw character
-        if (isGameOver) {
-            // Draw character in white
-            DrawTextureRec(loseCondition, loseConditionRec, loseConditionPos, WHITE); // Draw lose condition
-        } else {
-            // Draw character in white
-            DrawTextureRec(character, characterData.rec, characterData.pos, WHITE); 
+        if (finishLinePlaced) {
+            finishLinePos.x += czechHedgehogVelocity * deltaTime;
+        
+            Rectangle finishLineCollisionRec = {
+                finishLinePos.x,
+                finishLinePos.y,
+                finishLineRec.width,
+                finishLineRec.height
+            };
+        
+            Rectangle characterRec = {
+                characterData.pos.x,
+                characterData.pos.y,
+                characterData.rec.width,
+                characterData.rec.height
+            };
+        
+            if (CheckCollisionRecs(finishLineCollisionRec, characterRec)) {
+                isGameWin = true;
+            }
+        
+            DrawTextureRec(finishLine, finishLineRec, finishLinePos, WHITE);
+        }        
+
+        if (isGameOver && !isGameWin) {
+            DrawTextureRec(loseCondition, loseConditionRec, loseConditionPos, WHITE);
+        } 
+        
+        if (!isGameOver && isGameWin) {
+            DrawTextureRec(winCondition, winConditionRec, winConditionPos, WHITE);
+        } 
+        
+        if(!isGameOver && !isGameWin){
+            DrawTextureRec(character, characterData.rec, characterData.pos, WHITE);
         }
 
+
+        if (isGameOver || isGameWin) {
+            DrawText("Press [R] to Restart", windowWidth / 2 - 150, windowHeight / 2 + 300, 30, WHITE);
+        
+            if (IsKeyPressed(KEY_R)) {
+                // Reset game state
+                isGameOver = false;
+                isGameWin = false;
+                finishLinePlaced = false;
+                distanceTraveled = 0.0f;
+                bagroundPositionX = 0.0f;
+                foregroundPositionX = 0.0f;
+                velocity = 0;
+                isInAir = false;
+        
+                // Reset character position
+                characterData.pos.x = windowWidth / 2 - characterData.rec.width / 2;
+                characterData.pos.y = windowHeight - characterData.rec.height;
+                characterData.frame = 0;
+                characterData.runningTime = 0.0f;
+
+                // Reset czechHedgehog positions
+                for (int i = 0; i < sizeOfczechHedgehog; i++) {
+                    czechHedgehogs[i].pos.x = windowWidth + GetRandomValue(0, 1200);
+                    czechHedgehogs[i].pos.y = windowHeight - czechHedgehog.height;
+                    czechHedgehogs[i].frame = 0;
+                    czechHedgehogs[i].runningTime = 0.0f;
+                }
+        
+                // Reset finish position
+                finishLinePos.x = 0;
+                finishLinePos.y = 0;
+            }
+        }   
+        
         EndDrawing();
     }
 
@@ -244,6 +326,7 @@ int main() {
     UnloadTexture(background); // Unload texture
     UnloadTexture(foreground); // Unload texture
     UnloadTexture(loseCondition); // Unload texture
+    UnloadTexture(winCondition); // Unload texture
     UnloadTexture(finishLine); // Unload texture
     CloseWindow(); // Close window and OpenGL context
 
