@@ -47,7 +47,6 @@ void DrawParallaxLayer(Texture2D texture, float &positionX, float speed, float d
         DrawTextureEx(texture, position, 0.0f, scale, WHITE);
     }
 }
-
  
 int main() {
     // Initialization
@@ -92,9 +91,11 @@ int main() {
     finishLineRec.height = finishLine.height; // Set height
 
     // Main Character  
-    Texture2D character = LoadTexture("textures/rollfy.png"); // Load character texture
+    Texture2D characterSpritesheet = LoadTexture("textures/rollfy.png"); // Load character texture
+    Texture2D character = characterSpritesheet; // Set character texture
+    Texture2D characterJump = LoadTexture("textures/rollfy-jump.png"); // Load character jump texture
     AnimationData characterData; // Character animation data
-    characterData.rec.width = character.width/6; // Set width
+    characterData.rec.width = character.width/9; // Set width
     characterData.rec.height = character.height; // Set height
     characterData.rec.x = 0; // Set x position
     characterData.rec.y = 0; // Set y position
@@ -118,6 +119,22 @@ int main() {
 
     int backgroundCount{3}; // Background layer count
     int foregroundCount{3}; // Foreground layer count
+
+    bool collisionDetected{false}; // Collision detection
+    bool isGameOver{false}; // Game over state
+
+    // Lose condition
+    Texture2D loseCondition = LoadTexture("textures/rollfy-game-over.png"); // Load lose condition texture
+    Rectangle loseConditionRec; // Lose condition rectangle
+    Vector2 loseConditionPos; // Lose condition position
+    loseConditionRec.x = 0; // Set x position
+    loseConditionRec.y = 0; // Set y position
+    loseConditionRec.width = loseCondition.width; // Set width
+    loseConditionRec.height = loseCondition.height; // Set height
+    loseConditionPos.x = windowWidth / 2 - loseConditionRec.width / 2; // Center the lose condition
+    loseConditionPos.y = windowHeight / 2 - loseConditionRec.height / 2; // Center the lose condition
+
+
 
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
@@ -157,10 +174,44 @@ int main() {
         // Update character the position
         characterData.pos.y += velocity * deltaTime; 
 
-        if(!isInAir) {
+        if(isInAir) {
+            character = characterJump; // Change character texture to jump
+            characterData.rec.width = characterJump.width; // Set width
+            characterData.rec.height = characterJump.height; // Set height
+            characterData.rec.x = 0; // Set x position
+        } else {
+            character = characterSpritesheet; // Change character texture to normal
+            characterData.rec.width = character.width/9; // Set width
+            characterData.rec.height = character.height; // Set height
             characterData = updateAnimationData(characterData, deltaTime, 5); // Update character animation
-        } 
+        }
 
+        for (AnimationData czechHedgehog : czechHedgehogs) {
+            // Check for collision with czechHedgehog
+            float pad {20.0f}; // Padding for collision detection
+            Rectangle czechHedgehogRec = {
+            czechHedgehog.pos.x + pad, 
+            czechHedgehog.pos.y + pad, 
+            czechHedgehog.rec.width - 2* pad, 
+            czechHedgehog.rec.height - 2* pad
+            };
+            
+            Rectangle characterRec = {
+                characterData.pos.x, 
+                characterData.pos.y, 
+                characterData.rec.width, 
+                characterData.rec.height 
+            };
+
+            if (CheckCollisionRecs(czechHedgehogRec, characterRec)) {
+                // Collision detected
+                collisionDetected = true; // Set collision detected to true
+                isGameOver = true; // Set game over state
+                break; // Exit loop
+            }
+            
+        };
+    
         for (int i = 0; i < sizeOfczechHedgehog; i++)
         {
             // Check if czechHedgehog is out of the screen
@@ -172,20 +223,27 @@ int main() {
 
             DrawTextureRec(czechHedgehog, czechHedgehogs[i].rec, czechHedgehogs[i].pos, WHITE); // Draw czechHedgehog
   
-            
         }
 
         // Draw character
-        DrawTextureRec(character, characterData.rec, characterData.pos, WHITE); 
+        if (isGameOver) {
+            // Draw character in white
+            DrawTextureRec(loseCondition, loseConditionRec, loseConditionPos, WHITE); // Draw lose condition
+        } else {
+            // Draw character in white
+            DrawTextureRec(character, characterData.rec, characterData.pos, WHITE); 
+        }
 
         EndDrawing();
     }
 
     // De-Initialization
     UnloadTexture(character); // Unload texture
+    UnloadTexture(characterJump); // Unload texture
     UnloadTexture(czechHedgehog); // Unload texture
     UnloadTexture(background); // Unload texture
     UnloadTexture(foreground); // Unload texture
+    UnloadTexture(loseCondition); // Unload texture
     UnloadTexture(finishLine); // Unload texture
     CloseWindow(); // Close window and OpenGL context
 
