@@ -57,6 +57,7 @@ Rectangle GetCollisionRect(const AnimationData& data) {
 }
 
 int main() {
+    
     const int windowWidth = 1200;
     const int windowHeight = 720;
     const int gravity = 1000;
@@ -68,6 +69,15 @@ int main() {
     const float finishLineDistance = 4000.0f;
 
     InitWindow(windowWidth, windowHeight, "Dnipro Roller");
+    InitAudioDevice();
+    Sound jumpSound = LoadSound("sounds/jump.wav");
+    Sound landSound = LoadSound("sounds/land.wav");
+    Sound hitSound = LoadSound("sounds/hit.wav");
+    Sound winSound = LoadSound("sounds/win.wav");
+    Sound loseSound = LoadSound("sounds/lose.wav");
+    Music bgMusic = LoadMusicStream("sounds/music.mp3");
+    PlayMusicStream(bgMusic);
+    SetMusicVolume(bgMusic, 0.3f);
 
     Texture2D czechHedgehogTex = LoadTexture("textures/czech-hedgehog.png");
     Texture2D finishLineTex = LoadTexture("textures/finish-line.png");
@@ -112,6 +122,7 @@ int main() {
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
+        UpdateMusicStream(bgMusic);
         float dt = GetFrameTime();
         BeginDrawing();
         ClearBackground(WHITE);
@@ -127,6 +138,7 @@ int main() {
 
         if (gameState == GAME_RUNNING) {
             if (IsOnGround(character, windowHeight)) {
+                if (isInAir) PlaySound(landSound);
                 isInAir = false;
                 jumpCount = 0;
                 velocityY = 0;
@@ -148,6 +160,7 @@ int main() {
             }
 
             if (IsKeyPressed(KEY_SPACE)) {
+                PlaySound(jumpSound);
                 if (jumpCount == 0) {
                     velocityY = jumpVelocity;
                     jumpCount++;
@@ -190,30 +203,48 @@ int main() {
             enemy = UpdateAnimationData(enemy, dt, 7);
             DrawTextureRec(czechHedgehogTex, enemy.rec, enemy.pos, WHITE);
 
-            if (gameState == GAME_RUNNING && CheckCollisionRecs(GetCollisionRect(enemy), charRec))
+            if (gameState == GAME_RUNNING && CheckCollisionRecs(GetCollisionRect(enemy), charRec)) {
+                PlaySound(hitSound);
                 gameState = GAME_OVER;
+            }
         }
 
         if (finishLinePlaced) {
             finishLinePos.x += czechHedgehogVelocity * dt;
 
             Rectangle finishRec = { finishLinePos.x, 0, finishLineRec.width, (float)windowHeight };
-            if (gameState == GAME_RUNNING && CheckCollisionRecs(finishRec, charRec))
+            if (gameState == GAME_RUNNING && CheckCollisionRecs(finishRec, charRec)) {
+                PlaySound(winSound);
                 gameState = GAME_WIN;
+            }
 
             Vector2 origin = { 0, 0 };
             DrawTexturePro(finishLineTex, finishLineRec, { finishLinePos.x, finishLinePos.y - 30, finishLineRec.width, finishLineRec.height }, origin, 16.0f, WHITE);
         }
 
-        if (gameState == GAME_OVER)
+        static bool loseSoundPlayed = false;
+        if (gameState == GAME_OVER && !loseSoundPlayed) {
+            PlaySound(loseSound);
+            loseSoundPlayed = true;
+        }
+        if (gameState == GAME_OVER) {
             DrawTextureRec(loseTex, { 0, 0, (float)loseTex.width, (float)loseTex.height }, { windowWidth / 2.0f - loseTex.width / 2.0f, windowHeight / 2.0f - loseTex.height / 2.0f }, WHITE);
-        else if (gameState == GAME_WIN)
+        }
+        static bool winSoundPlayed = false;
+        if (gameState == GAME_WIN && !winSoundPlayed) {
+            PlaySound(winSound);
+            winSoundPlayed = true;
+        }
+        if (gameState == GAME_WIN) {
             DrawTextureRec(winTex, { 0, 0, (float)winTex.width, (float)winTex.height }, { windowWidth / 2.0f - winTex.width / 2.0f, windowHeight / 2.0f - winTex.height / 2.0f }, WHITE);
+        }
 
         if (gameState != GAME_RUNNING) {
             DrawText("Press [R] to Restart", windowWidth / 2 - 150, windowHeight / 2 + 300, 30, DARKGRAY);
 
             if (IsKeyPressed(KEY_R)) {
+                winSoundPlayed = false;
+                loseSoundPlayed = false;
                 character.pos = { windowWidth / 2.0f - character.rec.width / 2.0f, windowHeight - character.rec.height };
                 character.frame = 0;
                 character.runningTime = 0;
@@ -243,6 +274,14 @@ int main() {
     UnloadTexture(fgTex);
     UnloadTexture(loseTex);
     UnloadTexture(winTex);
+    StopMusicStream(bgMusic);
+    UnloadSound(jumpSound);
+    UnloadSound(hitSound);
+    UnloadSound(winSound);
+    UnloadSound(landSound);
+    UnloadSound(loseSound);
+    UnloadMusicStream(bgMusic);
+    CloseAudioDevice();
     CloseWindow();
 
     return 0;
