@@ -65,7 +65,7 @@ int main() {
     const int moveSpeed = 300;
     const int doubleJumpHorizontal = 250;
     const int czechHedgehogVelocity = -180;
-    const float finishLineDistance = 2000.0f;
+    const float finishLineDistance = 4000.0f;
 
     InitWindow(windowWidth, windowHeight, "Dnipro Roller");
 
@@ -134,6 +134,7 @@ int main() {
             } else {
                 isInAir = true;
                 velocityY += gravity * dt;
+                character.rec.x = 0;
             }
 
             velocityX = 0;
@@ -201,7 +202,7 @@ int main() {
                 gameState = GAME_WIN;
 
             Vector2 origin = { 0, 0 };
-            DrawTexturePro(finishLineTex, finishLineRec, { finishLinePos.x, finishLinePos.y, finishLineRec.width, finishLineRec.height }, origin, 36.0f, WHITE);
+            DrawTexturePro(finishLineTex, finishLineRec, { finishLinePos.x, finishLinePos.y - 30, finishLineRec.width, finishLineRec.height }, origin, 16.0f, WHITE);
         }
 
         if (gameState == GAME_OVER)
