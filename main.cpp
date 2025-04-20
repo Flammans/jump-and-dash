@@ -76,11 +76,14 @@ int main() {
     Sound winSound = LoadSound("sounds/win.wav");
     Sound loseSound = LoadSound("sounds/lose.wav");
     Music bgMusic = LoadMusicStream("sounds/music.mp3");
+    Music mainMusic = LoadMusicStream("sounds/main.wav");
     PlayMusicStream(bgMusic);
-    SetMusicVolume(bgMusic, 0.3f);
-    SetSoundVolume(jumpSound, 0.3f);
-    SetSoundVolume(landSound, 0.3f);
-    SetSoundVolume(hitSound, 0.3f);
+    PlayMusicStream(mainMusic);
+    SetMusicVolume(bgMusic, 0.4f);
+    SetMusicVolume(mainMusic, 1.4f);
+    SetSoundVolume(jumpSound, 0.2f);
+    SetSoundVolume(landSound, 0.2f);
+    SetSoundVolume(hitSound, 0.2f);
 
     Texture2D czechHedgehogTex = LoadTexture("textures/czech-hedgehog.png");
     Texture2D finishLineTex = LoadTexture("textures/shelter.png");
@@ -123,10 +126,11 @@ int main() {
     Rectangle finishLineRec = { 0, 0, (float)finishLineTex.width, (float)finishLineTex.height };
 
     SetTargetFPS(60);
-    float countdown = 20.0f;
+    float countdown = 25.0f;
 
     while (!WindowShouldClose()) {
         UpdateMusicStream(bgMusic);
+        UpdateMusicStream(mainMusic);
         float dt = GetFrameTime();
         if (gameState == GAME_RUNNING && countdown > 0.0f) countdown -= dt;
         BeginDrawing();
@@ -136,7 +140,6 @@ int main() {
         DrawParallaxLayer(foreground, dt);
         distanceTraveled += -czechHedgehogVelocity * dt;
 
-        // Timer UI
         if (gameState == GAME_RUNNING) {
             if (countdown <= 0.0f) {
                 PlaySound(loseSound);
@@ -288,7 +291,7 @@ int main() {
             DrawText("Press [R] to Restart", windowWidth / 2 - 150, windowHeight / 2 + 300, 30, DARKGRAY);
 
             if (IsKeyPressed(KEY_R)) {
-                countdown = 20.0f;
+                countdown = 25.0f;
                 winSoundPlayed = false;
                 loseSoundPlayed = false;
                 character.pos = { windowWidth / 2.0f - character.rec.width / 2.0f, windowHeight - character.rec.height };
@@ -321,12 +324,14 @@ int main() {
     UnloadTexture(loseTex);
     UnloadTexture(winTex);
     StopMusicStream(bgMusic);
+    StopMusicStream(mainMusic);
     UnloadSound(jumpSound);
     UnloadSound(hitSound);
     UnloadSound(winSound);
     UnloadSound(landSound);
     UnloadSound(loseSound);
     UnloadMusicStream(bgMusic);
+    UnloadMusicStream(mainMusic);
     CloseAudioDevice();
     CloseWindow();
 
