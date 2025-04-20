@@ -57,6 +57,7 @@ Will you make it in time?
 - **Victory**: `win.wav`
 - **Defeat**: `lose.wav`
 - **Background Music**: `music.mp3`
+- **Main Music**: `main.wav`
 
 Make sure you have a `sounds/` folder with all required sound files.
 
