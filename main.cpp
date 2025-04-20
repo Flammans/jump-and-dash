@@ -80,10 +80,12 @@ int main() {
     PlayMusicStream(bgMusic);
     PlayMusicStream(mainMusic);
     SetMusicVolume(bgMusic, 0.4f);
-    SetMusicVolume(mainMusic, 1.4f);
+    SetMusicVolume(mainMusic, 0.8f);
     SetSoundVolume(jumpSound, 0.2f);
     SetSoundVolume(landSound, 0.2f);
     SetSoundVolume(hitSound, 0.2f);
+    SetSoundVolume(winSound, 0.2f);
+    SetSoundVolume(loseSound, 0.2f);
 
     Texture2D czechHedgehogTex = LoadTexture("textures/czech-hedgehog.png");
     Texture2D finishLineTex = LoadTexture("textures/shelter.png");
