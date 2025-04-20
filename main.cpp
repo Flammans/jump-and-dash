@@ -78,9 +78,12 @@ int main() {
     Music bgMusic = LoadMusicStream("sounds/music.mp3");
     PlayMusicStream(bgMusic);
     SetMusicVolume(bgMusic, 0.3f);
+    SetSoundVolume(jumpSound, 0.3f);
+    SetSoundVolume(landSound, 0.3f);
+    SetSoundVolume(hitSound, 0.3f);
 
     Texture2D czechHedgehogTex = LoadTexture("textures/czech-hedgehog.png");
-    Texture2D finishLineTex = LoadTexture("textures/finish-line.png");
+    Texture2D finishLineTex = LoadTexture("textures/shelter.png");
     Texture2D charRunTex = LoadTexture("textures/rollfy.png");
     Texture2D charJumpTex = LoadTexture("textures/rollfy-jump.png");
     Texture2D bgTex = LoadTexture("textures/dnipro-far-buildings.png");
@@ -120,16 +123,31 @@ int main() {
     Rectangle finishLineRec = { 0, 0, (float)finishLineTex.width, (float)finishLineTex.height };
 
     SetTargetFPS(60);
+    float countdown = 20.0f;
 
     while (!WindowShouldClose()) {
         UpdateMusicStream(bgMusic);
         float dt = GetFrameTime();
+        if (gameState == GAME_RUNNING && countdown > 0.0f) countdown -= dt;
         BeginDrawing();
         ClearBackground(WHITE);
 
         DrawParallaxLayer(background, dt);
         DrawParallaxLayer(foreground, dt);
         distanceTraveled += -czechHedgehogVelocity * dt;
+
+        // Timer UI
+        if (gameState == GAME_RUNNING) {
+            if (countdown <= 0.0f) {
+                PlaySound(loseSound);
+                gameState = GAME_OVER;
+            }
+            int timeLeft = (int)countdown;
+            int millis = (int)((countdown - timeLeft) * 1000);
+            char timerText[64];
+            sprintf(timerText, "Time left: %02d.%03d", timeLeft, millis);
+            DrawText(timerText, windowWidth - 250, 20, 28, RED);
+        }
 
         if (!finishLinePlaced && distanceTraveled >= finishLineDistance) {
             finishLinePos = { (float)windowWidth, (float)(windowHeight - finishLineRec.height) };
@@ -196,11 +214,23 @@ int main() {
 
         Rectangle charRec = GetCollisionRect(character);
         for (auto& enemy : enemies) {
+
             enemy.pos.x += czechHedgehogVelocity * dt;
+
+            if (finishLinePlaced) {
+                float safeZone = 100.0f;
+                float enemyRight = enemy.pos.x + enemy.rec.width;
+                float finishLeft = finishLinePos.x;
+                if (enemyRight > finishLeft - safeZone && enemy.pos.x < finishLeft + safeZone) {
+                    enemy.pos.x = finishLeft + safeZone + GetRandomValue(100, 300);
+                }
+            }
             if (enemy.pos.x < -enemy.rec.width)
                 enemy.pos.x = windowWidth + GetRandomValue(0, 400);
 
+
             enemy = UpdateAnimationData(enemy, dt, 7);
+
             DrawTextureRec(czechHedgehogTex, enemy.rec, enemy.pos, WHITE);
 
             if (gameState == GAME_RUNNING && CheckCollisionRecs(GetCollisionRect(enemy), charRec)) {
@@ -219,7 +249,7 @@ int main() {
             }
 
             Vector2 origin = { 0, 0 };
-            DrawTexturePro(finishLineTex, finishLineRec, { finishLinePos.x, finishLinePos.y - 30, finishLineRec.width, finishLineRec.height }, origin, 16.0f, WHITE);
+            DrawTexturePro(finishLineTex, finishLineRec, { finishLinePos.x, finishLinePos.y - 40, finishLineRec.width, finishLineRec.height }, origin, 0.0f, WHITE);
         }
 
         static bool loseSoundPlayed = false;
@@ -228,7 +258,14 @@ int main() {
             loseSoundPlayed = true;
         }
         if (gameState == GAME_OVER) {
+            DrawRectangle(0, 0, windowWidth, windowHeight, Fade(BLACK, 0.5f));
             DrawTextureRec(loseTex, { 0, 0, (float)loseTex.width, (float)loseTex.height }, { windowWidth / 2.0f - loseTex.width / 2.0f, windowHeight / 2.0f - loseTex.height / 2.0f }, WHITE);
+            DrawText("Don't ignore air raid warnings!", windowWidth / 2 - 250 + 3, windowHeight / 2 + 100 + 2, 26, BLACK);
+            DrawText("Don't ignore air raid warnings!", windowWidth / 2 - 250, windowHeight / 2 + 100, 26, RED);
+            DrawText("If you want to survive, you must reach the shelter", windowWidth / 2 - 310 + 2, windowHeight / 2 + 140 + 2, 24, BLACK);
+            DrawText("If you want to survive, you must reach the shelter", windowWidth / 2 - 310, windowHeight / 2 + 140, 24, DARKGRAY);
+            DrawText("as fast as possible before another strike hits your city.", windowWidth / 2 - 340 + 2, windowHeight / 2 + 170 + 2, 24, BLACK);
+            DrawText("as fast as possible before another strike hits your city.", windowWidth / 2 - 340, windowHeight / 2 + 170, 24, DARKGRAY);
         }
         static bool winSoundPlayed = false;
         if (gameState == GAME_WIN && !winSoundPlayed) {
@@ -236,13 +273,22 @@ int main() {
             winSoundPlayed = true;
         }
         if (gameState == GAME_WIN) {
+            DrawRectangle(0, 0, windowWidth, windowHeight, Fade(BLACK, 0.5f));
             DrawTextureRec(winTex, { 0, 0, (float)winTex.width, (float)winTex.height }, { windowWidth / 2.0f - winTex.width / 2.0f, windowHeight / 2.0f - winTex.height / 2.0f }, WHITE);
+            DrawText("You made it to the shelter in time!", windowWidth / 2 - 240 + 2, windowHeight / 2 + 100 + 2, 26, BLACK);
+            DrawText("You made it to the shelter in time!", windowWidth / 2 - 240, windowHeight / 2 + 100, 26, DARKGREEN);
+            DrawText("This time you survived... but the danger is never far away.", windowWidth / 2 - 310 + 2, windowHeight / 2 + 140 + 2, 24, BLACK);
+            DrawText("This time you survived... but the danger is never far away.", windowWidth / 2 - 310, windowHeight / 2 + 140, 24, DARKGRAY);
+            DrawText("Stay alert and never ignore the warning signals.", windowWidth / 2 - 280 + 2, windowHeight / 2 + 170 + 2, 24, BLACK);
+            DrawText("Stay alert and never ignore the warning signals.", windowWidth / 2 - 280, windowHeight / 2 + 170, 24, DARKGRAY);
         }
 
         if (gameState != GAME_RUNNING) {
+            DrawText("Press [R] to Restart", windowWidth / 2 - 150 + 3, windowHeight / 2 + 300 + 3, 30, BLACK);
             DrawText("Press [R] to Restart", windowWidth / 2 - 150, windowHeight / 2 + 300, 30, DARKGRAY);
 
             if (IsKeyPressed(KEY_R)) {
+                countdown = 20.0f;
                 winSoundPlayed = false;
                 loseSoundPlayed = false;
                 character.pos = { windowWidth / 2.0f - character.rec.width / 2.0f, windowHeight - character.rec.height };
